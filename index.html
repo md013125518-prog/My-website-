@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<title>রমজান ২০২৬</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:linear-gradient(to bottom,#0f5132,#198754);
+color:white;
+text-align:center;
+transition:0.5s;
+}
+
+/* Main Card */
+
+.card{
+max-width:520px;
+margin:20px auto;
+background:white;
+color:#222;
+border-radius:20px;
+padding:15px;
+box-shadow:0 10px 25px rgba(0,0,0,0.3);
+}
+
+/* Header */
+
+.header{
+background:linear-gradient(to right,#146c43,#198754);
+color:white;
+padding:15px;
+border-radius:15px;
+}
+
+.header h1{
+margin:5px;
+font-size:26px;
+}
+
+/* Images */
+
+.card img{
+width:95%;
+border-radius:15px;
+margin:10px 0;
+}
+
+/* Time Boxes */
+
+.time-container{
+display:flex;
+flex-wrap:wrap;
+gap:10px;
+justify-content:space-between;
+}
+
+.box{
+flex:1 1 45%;
+padding:12px;
+border-radius:12px;
+font-weight:bold;
+color:white;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+text-shadow:0 1px 2px rgba(0,0,0,0.5);
+}
+
+.dhakaIftar{background:#198754;}
+.dhakaSehri{background:#20c997;}
+.gazipurIftar{background:#0d6efd;}
+.gazipurSehri{background:#6610f2;}
+
+.nowBox{
+background:#fd7e14;
+flex:1 1 100%;
+margin-top:5px;
+}
+
+.countdownBox{
+background:#dc3545;
+flex:1 1 100%;
+margin-top:5px;
+}
+
+/* Schedule */
+
+.schedule-container{
+display:flex;
+flex-wrap:wrap;
+gap:8px;
+justify-content:space-between;
+margin-top:10px;
+}
+
+.schedule-box{
+flex:1 1 48%;
+background:#e9f7ef;
+color:#146c43;
+border-radius:12px;
+padding:10px;
+font-weight:bold;
+box-shadow:0 2px 6px rgba(0,0,0,0.2);
+}
+
+/* Dark Mode */
+
+.dark body{
+background:#000;
+}
+
+.dark .card{
+background:#111;
+color:white;
+}
+
+.dark .schedule-box{
+background:#222;
+color:white;
+}
+
+/* Mobile */
+
+@media(max-width:480px){
+.box,.schedule-box{
+flex:1 1 100%;
+}
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<div class="header">
+<h1>🌙 রমজান ২০২৬</h1>
+<p id="engDate"></p>
+<p id="bnDate"></p>
+</div>
+
+<img src="https://images.unsplash.com/photo-1611078481273-f7e14a580c18?auto=format&fit=crop&w=800&q=80">
+
+<div class="time-container">
+
+<div class="box dhakaIftar">
+ঢাকা ইফতার
+<span id="dhakaIftar">--:--</span>
+</div>
+
+<div class="box dhakaSehri">
+ঢাকা সেহরি
+<span id="dhakaSehri">--:--</span>
+</div>
+
+<div class="box gazipurIftar">
+গাজীপুর ইফতার
+<span id="gazipurIftar">--:--</span>
+</div>
+
+<div class="box gazipurSehri">
+গাজীপুর সেহরি
+<span id="gazipurSehri">--:--</span>
+</div>
+
+</div>
+
+<div class="box nowBox">
+এখন সময়
+<span id="now"></span>
+</div>
+
+<div class="box countdownBox">
+ইফতার পর্যন্ত
+<span id="countdown">--:--:--</span>
+</div>
+
+<h3>📅 ৩০ দিনের সময়সূচি</h3>
+<div class="schedule-container" id="schedule"></div>
+
+<img src="https://images.unsplash.com/photo-1611078481273-f7e14a580c18?auto=format&fit=crop&w=800&q=80">
+
+</div>
+
+<script>
+
+/* Date */
+
+function updateDate(){
+
+let d=new Date();
+
+document.getElementById("engDate").innerText=
+"আজ: "+d.toLocaleDateString("bn-BD",{dateStyle:"full"});
+
+let bn=new Intl.DateTimeFormat("bn-BD-u-ca-beng",
+{dateStyle:"full"}).format(d);
+
+document.getElementById("bnDate").innerText="বাংলা: "+bn;
+
+}
+
+updateDate();
+
+
+/* Live Clock */
+
+function updateNow(){
+
+let d=new Date();
+
+let h=d.getHours().toString().padStart(2,"0");
+let m=d.getMinutes().toString().padStart(2,"0");
+let s=d.getSeconds().toString().padStart(2,"0");
+
+document.getElementById("now").innerText=
+h+":"+m+":"+s;
+
+}
+
+setInterval(updateNow,1000);
+
+
+/* API Times */
+
+async function getTime(city){
+
+try{
+
+let res=await fetch(
+`https://api.aladhan.com/v1/timingsByCity?city=${city}&country=Bangladesh&method=2&school=1`
+);
+
+let data=await res.json();
+
+return data.data.timings;
+
+}catch{
+
+return {Fajr:"04:50",Maghrib:"18:05"};
+
+}
+
+}
+
+
+async function loadTimes(){
+
+let dhaka=await getTime("Dhaka");
+let gazipur=await getTime("Gazipur");
+
+document.getElementById("dhakaIftar").innerText=dhaka.Maghrib;
+document.getElementById("dhakaSehri").innerText=dhaka.Fajr;
+
+document.getElementById("gazipurIftar").innerText=gazipur.Maghrib;
+document.getElementById("gazipurSehri").innerText=gazipur.Fajr;
+
+startCountdown(dhaka.Maghrib);
+
+}
+
+loadTimes();
+
+
+/* Countdown */
+
+function startCountdown(time){
+
+let t=time.split(":");
+
+let maghribH=parseInt(t[0]);
+let maghribM=parseInt(t[1]);
+
+setInterval(()=>{
+
+let now=new Date();
+
+let mag=new Date();
+
+mag.setHours(maghribH,maghribM,0,0);
+
+if(now>mag){
+mag.setDate(mag.getDate()+1);
+}
+
+let diff=mag-now;
+
+let h=Math.floor(diff/3600000);
+let m=Math.floor((diff%3600000)/60000);
+let s=Math.floor((diff%60000)/1000);
+
+document.getElementById("countdown").innerText=
+h.toString().padStart(2,"0")+":"+
+m.toString().padStart(2,"0")+":"+
+s.toString().padStart(2,"0");
+
+if(h==0 && m<30){
+document.body.classList.add("dark");
+}else{
+document.body.classList.remove("dark");
+}
+
+},1000);
+
+}
+
+
+/* Schedule */
+
+let days=[
+
+["১","১৮:০৫","০৪:৫০"],["২","১৮:০৬","০৪:৪৯"],
+["৩","১৮:০৭","০৪:৪৮"],["৪","১৮:০৮","০৪:৪৭"],
+["৫","১৮:০৯","০৪:৪৬"],["৬","১৮:১০","০৪:৪৫"],
+["৭","১৮:১১","০৪:৪৪"],["৮","১৮:১২","০৪:৪৩"],
+["৯","১৮:১৩","০৪:৪২"],["১০","১৮:১৪","০৪:৪১"],
+["১১","১৮:১৫","০৪:৪০"],["১২","১৮:১৬","০৪:৩৯"],
+["১৩","১৮:১৭","০৪:৩৮"],["১৪","১৮:১৮","০৪:৩৭"],
+["১৫","১৮:১৯","০৪:৩৬"],["১৬","১৮:২০","০৪:৩৫"],
+["১৭","১৮:২১","০৪:৩৪"],["১৮","১৮:২২","০৪:৩৩"],
+["১৯","১৮:২৩","০৪:৩২"],["২০","১৮:২৪","০৪:৩১"],
+["২১","১৮:২৫","০৪:৩০"],["২২","১৮:২৬","০৪:২৯"],
+["২৩","১৮:২৭","০৪:২৮"],["২৪","১৮:২৮","০৪:২৭"],
+["২৫","১৮:২৯","০৪:২৬"],["২৬","১৮:৩০","০৪:২৫"],
+["২৭","১৮:৩১","০৪:২৪"],["২৮","১৮:৩২","০৪:২৩"],
+["২৯","১৮:৩৩","০৪:২২"],["৩০","১৮:৩৪","০৪:২১"]
+
+];
+
+let box=document.getElementById("schedule");
+
+days.forEach(d=>{
+
+box.innerHTML+=`
+
+<div class="schedule-box">
+
+দিন: ${d[0]}<br>
+ইফতার: ${d[1]}<br>
+সেহরি: ${d[2]}
+
+</div>
+
+`;
+
+});
+
+</script>
+
+</body>
+</html>
